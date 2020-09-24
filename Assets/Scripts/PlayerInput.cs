@@ -27,7 +27,9 @@ public class PlayerInput : MonoBehaviour
     private void FixedUpdate()
     {
         float hAxis = Input.GetAxis("Horizontal");
+        float vAxis = Input.GetAxis("Vertical");
         // Pass all parameters to the character control script.
         playerController.Move(hAxis, jump);
+        playerController.Aim(vAxis);
     }
 }

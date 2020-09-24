@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -7,6 +8,7 @@ public class PlayerController : MonoBehaviour
 
     [SerializeField] private float m_MaxSpeed = 10f;                    // The fastest the player can travel in the x axis.
     [SerializeField] private float m_JumpForce = 400f;                  // Amount of force added when the player jumps.
+    [SerializeField] private float m_AimSpeed = 30f;                  // Amount of force added when the player jumps.
     private Animator m_Anim;            // Reference to the player's animator component.
     private Rigidbody2D m_Rigidbody2D;
     private bool m_FacingRight = true;  // For determining which way the player is currently facing.
@@ -14,6 +16,8 @@ public class PlayerController : MonoBehaviour
     private bool m_Grounded;
     private Transform m_GroundCheck;    // A position marking where to check if the player is grounded.
     const float k_GroundedRadius = .2f; // Radius of the overlap circle to determine if grounded
+
+
     [SerializeField] private LayerMask m_WhatIsGround;
 
 
@@ -51,9 +55,7 @@ public class PlayerController : MonoBehaviour
         // Set the vertical animation
         m_Anim.SetFloat("vSpeed", m_Rigidbody2D.velocity.y);
 
-        var dir = Input.mousePosition - Camera.main.WorldToScreenPoint(transform.position);
-        var angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-        FirePoint.transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+        
     }
 
     public void Move(float hAxis, bool jump)
@@ -90,6 +92,20 @@ public class PlayerController : MonoBehaviour
             m_Rigidbody2D.velocity *= .5f;
         }
     }
+    internal void Aim(float vAxis)
+    {
+        /*
+        var dir = Input.mousePosition - Camera.main.WorldToScreenPoint(transform.position);
+        var angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+        FirePoint.transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+        */
+        float angle = Vector2.Angle(FirePoint.transform.localPosition, Vector2.up);
+        if ((angle < 10f && vAxis > 0) || (angle > 170 && vAxis < 0)) 
+            return;
+        int flipFactor = m_FacingRight ? 1 : -1;
+        FirePoint.transform.RotateAround( transform.position,transform.forward, vAxis * m_AimSpeed * Time.deltaTime * flipFactor);
+        
+    }
 
     public void Fire()
     {
@@ -98,10 +114,10 @@ public class PlayerController : MonoBehaviour
         // Transform RealFirePoint = m_FacingRight ? FirePoint.transform : InversedFirePoint.transform;
         //Aim();
 
-
+        float ForceAmount = 1000f;
         GameObject bullet = Instantiate(projectilePrefab, FirePoint.transform);
         //bullet.GetComponent<Bullet>().source = gameObject;
-        //bullet.GetComponent<Rigidbody2D>().AddForce( (FirePoint.transform.position - transform.position) * ForceAmount, ForceMode2D.Force);
+        bullet.GetComponent<Rigidbody2D>().AddForce( (FirePoint.transform.position - transform.position) * ForceAmount, ForceMode2D.Force);
         bullet.transform.parent = null;
     }
 
